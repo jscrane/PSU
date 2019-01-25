@@ -1,6 +1,13 @@
 # PSU
 Software-controlled variable-voltage power supply with current and power monitoring.
 
+Features:
+- Digital Potentiometer for software-controlled adjustment
+- Common voltages preset through web interface
+- Voltage adjustment via Rotary Encoder
+- TFT LCD to display output voltage and current
+- Software-controlled fuse
+
 ## Hardware
 Display hardware as [WifiWeatherGuy](https://cadlab.io/project/1280/master/files):
 - [Wemos D1 Mini](https://wiki.wemos.cc/products:d1:d1_mini)
@@ -16,7 +23,7 @@ PSU hardware:
 - Old laptop transformer (19v)
 
 ## Software
-- Arduino v1.8.x
+- [Arduino](https://www.arduino.cc/en/main/software) v1.8.x
 - [Arduino/ESP8266](https://github.com/esp8266/Arduino) v2.5.0
 - [TFT_eSPI](https://github.com/Bodmer/TFT_eSPI) v1.4.0
 - [Adafruit_INA219](https://github.com/adafruit/Adafruit_INA219)
