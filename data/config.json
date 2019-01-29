@@ -2,5 +2,6 @@
  "ssid": "",
  "password": "",
  "hostname": "psu",
- "debug": false
+ "debug": false,
+ "presets": [ 3.3, 5., 9. ]
 }

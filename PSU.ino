@@ -32,6 +32,7 @@ public:
 	char password[33];
 	char hostname[17];
 	bool debug;
+	float presets[10];
 
 	void configure(JsonObject &o);
 } cfg;
@@ -41,6 +42,10 @@ void config::configure(JsonObject &o) {
 	strlcpy(password, o[F("password")] | "", sizeof(password));
 	strlcpy(hostname, o[F("hostname")] | "", sizeof(hostname));
 	debug = o[F("debug")] | false;
+	JsonArray &p = o[F("presets")];
+	if (p.success())
+		for (int i = 0; i < p.size() && i < sizeof(presets) / sizeof(presets[0]); i++)
+			presets[i] = p.get<float>(i);
 }
 
 static volatile bool swtch;
@@ -160,6 +165,16 @@ void loop() {
 	tft.setTextFont(0);
 	tft.printf("Bus: %4.2fV\r\n", busvoltage);
 	tft.printf("Shunt: %4.2fmV\r\n", shuntvoltage);
+
+	static int v;
+	if (swtch) {
+		swtch = false;
+		v++;
+		if (v == sizeof(cfg.presets) / sizeof(cfg.presets[0]) || cfg.presets[v] == 0.0)
+			v = 0;
+	}
+	tft.printf("target: %4.1fv\r\n", cfg.presets[v]);
+
 	tft.setTextFont(2);
 	tft.printf("%4.2fV\r\n", loadvoltage);
 	tft.printf("%4.2fmA\r\n", current_mA);
@@ -169,6 +184,5 @@ void loop() {
 		const int t[] = {-90, -80, -70, -67, -40};
 		rssi.update(updater([r, t](int i)->bool { return r > t[i]; }));
 	}
-
-	delay(2000);
+	delay(500);
 }
