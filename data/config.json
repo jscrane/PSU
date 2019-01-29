@@ -1,5 +1,6 @@
 {
  "ssid": "",
  "password": "",
- "hostname": "psu"
+ "hostname": "psu",
+ "debug": false
 }

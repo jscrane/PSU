@@ -31,6 +31,7 @@ public:
 	char ssid[33];
 	char password[33];
 	char hostname[17];
+	bool debug;
 
 	void configure(JsonObject &o);
 } cfg;
@@ -39,29 +40,17 @@ void config::configure(JsonObject &o) {
 	strlcpy(ssid, o[F("ssid")] | "", sizeof(ssid));
 	strlcpy(password, o[F("password")] | "", sizeof(password));
 	strlcpy(hostname, o[F("hostname")] | "", sizeof(hostname));
-
-	// FIXME: read your configuration parameters here
+	debug = o[F("debug")] | false;
 }
 
 static volatile bool swtch;
 bool connected, debug;
 const char *config_file = "/config.json";
-RSSI rssi(tft, 5, TFT_WHITE, TFT_BLUE);
+RSSI rssi(tft, 5);
 
 void setup() {
 	Serial.begin(115200);
 	Serial.println(F("Booting!"));
-
-	tft.init();
-	tft.setTextColor(TFT_WHITE, TFT_BLUE);
-	tft.fillScreen(TFT_BLUE);
-	tft.setCursor(0, 0);
-	tft.setRotation(3);
-
-	rssi.init(tft.width() - 21, 0, 20, 20);
-
-	pinMode(SWITCH, INPUT_PULLUP);
-	debug = digitalRead(SWITCH) == LOW;
 
 	bool result = SPIFFS.begin();
 	if (!result) {
@@ -74,6 +63,20 @@ void setup() {
 		ERR(print(F("config!")));
 		return;
 	}
+
+	pinMode(SWITCH, INPUT_PULLUP);
+	debug = digitalRead(SWITCH) == LOW || cfg.debug;
+
+	int bg = debug? TFT_RED: TFT_BLUE;
+
+	tft.init();
+	tft.setTextColor(TFT_WHITE, bg);
+	tft.fillScreen(bg);
+	tft.setCursor(0, 0);
+	tft.setRotation(3);
+
+	rssi.colors(TFT_WHITE, bg);
+	rssi.init(tft.width() - 21, 0, 20, 20);
 
 	WiFi.mode(WIFI_STA);
 	WiFi.hostname(cfg.hostname);
@@ -154,12 +157,13 @@ void loop() {
 	loadvoltage = busvoltage + (shuntvoltage / 1000);
 	
 	tft.setCursor(0, 1);
-	tft.printf("Bus V:    %4.2f\r\n", busvoltage);
-	tft.printf("Shunt mV: %4.2f\r\n", shuntvoltage);
-	tft.printf("Load V:   %4.2f\r\n", loadvoltage);
-	tft.printf("Curr mA:  %4.2f\r\n", current_mA);
-	tft.printf("Power mW: %4.2f\r\n", power_mW);
-	tft.printf("RSSI:     %d\r\n", r);
+	tft.setTextFont(0);
+	tft.printf("Bus: %4.2fV\r\n", busvoltage);
+	tft.printf("Shunt: %4.2fmV\r\n", shuntvoltage);
+	tft.setTextFont(2);
+	tft.printf("%4.2fV\r\n", loadvoltage);
+	tft.printf("%4.2fmA\r\n", current_mA);
+	tft.printf("%4.1fmW\r\n", power_mW);
 
 	if (r != 31) {
 		const int t[] = {-90, -80, -70, -67, -40};
