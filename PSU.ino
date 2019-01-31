@@ -10,6 +10,7 @@
 #include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
+#include <SimpleTimer.h>
 
 #include "Configuration.h"
 #include "dbg.h"
@@ -25,6 +26,8 @@ WiFiClient wifiClient;
 ESP8266WebServer server(80);
 ESP8266HTTPUpdateServer httpUpdater;
 DNSServer dnsServer;
+
+bool debug;
 
 class config: public Configuration {
 public:
@@ -48,10 +51,37 @@ void config::configure(JsonObject &o) {
 			presets[i] = p.get<float>(i);
 }
 
+static const char *config_file = "/config.json";
+static const unsigned long UPDATE_RSSI = 1000, UPDATE_VI = 250;
+
 static volatile bool swtch;
-bool connected, debug;
-const char *config_file = "/config.json";
-RSSI rssi(tft, 5);
+static bool connected;
+static RSSI rssi(tft, 5);
+
+static float shuntvoltage, busvoltage, current_mA, loadvoltage, power_mW;
+static int wr, tv;
+static SimpleTimer timers;
+
+static void draw_rssi() {
+	if (wr != 31) {
+		int r = wr;
+		const int t[] = {-90, -80, -70, -67, -40};
+		rssi.update(updater([r, t](int i)->bool { return r > t[i]; }));
+	}
+}
+
+static void draw_vi() {
+	tft.setCursor(0, 1);
+	tft.setTextFont(0);
+	tft.printf("Bus: %4.2fV\r\n", busvoltage);
+	tft.printf("Shunt: %4.2fmV\r\n", shuntvoltage);
+	tft.printf("Target: %4.1fv\r\n", cfg.presets[tv]);
+
+	tft.setTextFont(2);
+	tft.printf("%4.2fV\r\n", loadvoltage);
+	tft.printf("%4.2fmA\r\n", current_mA);
+	tft.printf("%4.1fmW\r\n", power_mW);
+}
 
 void setup() {
 	Serial.begin(115200);
@@ -137,7 +167,8 @@ void setup() {
 	attachInterrupt(SWITCH, []() { swtch=true; }, FALLING);
 	ina219.begin();
 
-	// FIXME: startup
+	timers.setInterval(UPDATE_RSSI, draw_rssi);
+	timers.setInterval(UPDATE_VI, draw_vi);
 }
 
 void loop() {
@@ -148,12 +179,7 @@ void loop() {
 	if (!connected)
 		dnsServer.processNextRequest();
 
-	float shuntvoltage = 0;
-	float busvoltage = 0;
-	float current_mA = 0;
-	float loadvoltage = 0;
-	float power_mW = 0;
-	int r = WiFi.RSSI();
+	wr = WiFi.RSSI();
 
 	shuntvoltage = ina219.getShuntVoltage_mV();
 	busvoltage = ina219.getBusVoltage_V();
@@ -161,28 +187,13 @@ void loop() {
 	power_mW = ina219.getPower_mW();
 	loadvoltage = busvoltage + (shuntvoltage / 1000);
 	
-	tft.setCursor(0, 1);
-	tft.setTextFont(0);
-	tft.printf("Bus: %4.2fV\r\n", busvoltage);
-	tft.printf("Shunt: %4.2fmV\r\n", shuntvoltage);
-
-	static int v;
 	if (swtch) {
 		swtch = false;
-		v++;
-		if (v == sizeof(cfg.presets) / sizeof(cfg.presets[0]) || cfg.presets[v] == 0.0)
-			v = 0;
+		tv++;
+		if (tv == sizeof(cfg.presets) / sizeof(cfg.presets[0]) || cfg.presets[tv] == 0.0)
+			tv = 0;
+		draw_vi();
 	}
-	tft.printf("target: %4.1fv\r\n", cfg.presets[v]);
 
-	tft.setTextFont(2);
-	tft.printf("%4.2fV\r\n", loadvoltage);
-	tft.printf("%4.2fmA\r\n", current_mA);
-	tft.printf("%4.1fmW\r\n", power_mW);
-
-	if (r != 31) {
-		const int t[] = {-90, -80, -70, -67, -40};
-		rssi.update(updater([r, t](int i)->bool { return r > t[i]; }));
-	}
-	delay(500);
+	timers.run();
 }
