@@ -28,3 +28,4 @@ PSU hardware:
 - [TFT_eSPI](https://github.com/Bodmer/TFT_eSPI) v1.4.0
 - [Adafruit_INA219](https://github.com/adafruit/Adafruit_INA219) v1.0.4
 - [Arduino-X9C](https://github.com/philbowles/Arduino-X9C) v0.9.0
+- [SimpleTimer](https://github.com/schinken/SimpleTimer)
