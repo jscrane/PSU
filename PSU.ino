@@ -70,17 +70,43 @@ static void draw_rssi() {
 	}
 }
 
+static void adjust(int16_t &last, int16_t x, int16_t y) {
+	if (last > x)
+		tft.fillRect(x, y, last - x, tft.fontHeight(), TFT_BLUE);
+	last = x;
+}
+
 static void draw_vi() {
+	char buf[32];
+	static int16_t last[6];
+
 	tft.setCursor(0, 1);
 	tft.setTextFont(0);
-	tft.printf("Bus: %4.2fV\r\n", busvoltage);
-	tft.printf("Shunt: %4.2fmV\r\n", shuntvoltage);
-	tft.printf("Target: %4.1fv\r\n", cfg.presets[tv]);
 
-	tft.setTextFont(2);
-	tft.printf("%4.2fV\r\n", loadvoltage);
-	tft.printf("%4.2fmA\r\n", current_mA);
-	tft.printf("%4.1fmW\r\n", power_mW);
+	int16_t x, y = 1;
+	snprintf(buf, sizeof(buf), "Bus: %4.2fV", busvoltage);
+	adjust(last[0], tft.drawString(buf, 0, y), y);
+
+	y += tft.fontHeight();
+	snprintf(buf, sizeof(buf), "Shunt: %4.2fmV", shuntvoltage);
+	adjust(last[1], tft.drawString(buf, 0, y), y);
+
+	y += tft.fontHeight();
+	snprintf(buf, sizeof(buf), "Target: %4.1fV", cfg.presets[tv]);
+	adjust(last[2], tft.drawString(buf, 0, y), y);
+
+	y += tft.fontHeight();
+	tft.setTextFont(4);
+	snprintf(buf, sizeof(buf), "%4.2fV", loadvoltage);
+	adjust(last[3], tft.drawString(buf, 0, y), y);
+
+	y += tft.fontHeight();
+	snprintf(buf, sizeof(buf), "%4.2fmA", current_mA);
+	adjust(last[4], tft.drawString(buf, 0, y), y);
+
+	y += tft.fontHeight();
+	snprintf(buf, sizeof(buf), "%4.1fmW", power_mW);
+	adjust(last[5], tft.drawString(buf, 0, y), y);
 }
 
 void setup() {
