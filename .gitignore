@@ -1,0 +1,6 @@
+spiffs.img
+*.ino.bin
+*.ino.elf
+*.cpp.o
+*.cpp.d
+.lib
