@@ -18,7 +18,7 @@ Display hardware as [WifiWeatherGuy](https://cadlab.io/project/1280/master/files
 PSU hardware:
 - [LM317](https://en.wikipedia.org/wiki/LM317) variable voltage regulator
 - [INA219](https://www.adafruit.com/product/904) voltage and current sensor
-- [X9C103S](https://www.renesas.com/us/en/products/data-converters/digital-potentiometers/dcp/device/X9C103.html) digital potentiometer
+- [X9C103P](https://www.renesas.com/us/en/products/data-converters/digital-potentiometers/dcp/device/X9C103.html) digital potentiometer
 - [Rotary Encoder](https://en.wikipedia.org/wiki/Rotary_encoder)
 - Old laptop transformer (19v)
 
