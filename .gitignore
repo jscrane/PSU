@@ -4,3 +4,4 @@ spiffs.img
 *.cpp.o
 *.cpp.d
 .lib
+.*.swp
