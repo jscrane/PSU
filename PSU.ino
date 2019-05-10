@@ -230,16 +230,23 @@ void loop() {
 	power_mW = ina219.getPower_mW();
 	loadvoltage = busvoltage + (shuntvoltage / 1000);
 
+	static long last_switch;
+	long now = millis();
+
 	if (swtch) {
 		swtch = false;
-		tv++;
-		if (tv == sizeof(cfg.presets) / sizeof(cfg.presets[0]) || cfg.presets[tv] == 0.0)
-			tv = 0;
-		draw_vi();
+		if (now - last_switch > 500) {
+			last_switch = now;
+			tv++;
+			if (tv == sizeof(cfg.presets) / sizeof(cfg.presets[0]) || cfg.presets[tv] == 0.0)
+				tv = 0;
+			draw_vi();
+		}
 	}
 
 	float diff = busvoltage - cfg.presets[tv];
-	x9c.trimPot(1, diff < 0? X9C_DOWN: X9C_UP);
+	if (fabs(diff) / busvoltage > 0.02)
+		x9c.trimPot(1, diff < 0? X9C_DOWN: X9C_UP);
 
 	timers.run();
 }
