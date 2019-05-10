@@ -11,6 +11,7 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <SimpleTimer.h>
+#include <X9C.h>
 
 #include "Configuration.h"
 #include "dbg.h"
@@ -20,6 +21,11 @@
 
 Adafruit_INA219 ina219;
 TFT_eSPI tft;
+X9C x9c;
+
+#define X9C_CS	D0
+#define X9C_UD	D4
+#define X9C_INC	RX
 
 MDNSResponder mdns;
 WiFiClient wifiClient;
@@ -28,6 +34,7 @@ ESP8266HTTPUpdateServer httpUpdater;
 DNSServer dnsServer;
 
 bool debug;
+unsigned bgcolor;
 
 class config: public Configuration {
 public:
@@ -70,10 +77,18 @@ static void draw_rssi() {
 	}
 }
 
-static void adjust(int16_t &last, int16_t x, int16_t y) {
+static void pad(int16_t &last, int16_t x, int16_t y) {
 	if (last > x)
 		tft.fillRect(x, y, last - x, tft.fontHeight(), TFT_BLUE);
 	last = x;
+}
+
+static void set_voltage(float v) {
+	const float rh = 470, rl_max = 11000, vr = 1.25;
+
+	float rl = rh/vr * (v - vr);
+tft.drawFloat(rl, 2, 100, 100, 0);
+	x9c.setPot((uint8_t)100 * (rl / rl_max), false);
 }
 
 static void draw_vi() {
@@ -85,28 +100,28 @@ static void draw_vi() {
 
 	int16_t x, y = 1;
 	snprintf(buf, sizeof(buf), "Bus: %4.2fV", busvoltage);
-	adjust(last[0], tft.drawString(buf, 0, y), y);
+	pad(last[0], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
 	snprintf(buf, sizeof(buf), "Shunt: %4.2fmV", shuntvoltage);
-	adjust(last[1], tft.drawString(buf, 0, y), y);
+	pad(last[1], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
 	snprintf(buf, sizeof(buf), "Target: %4.1fV", cfg.presets[tv]);
-	adjust(last[2], tft.drawString(buf, 0, y), y);
+	pad(last[2], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
 	tft.setTextFont(4);
 	snprintf(buf, sizeof(buf), "%4.2fV", loadvoltage);
-	adjust(last[3], tft.drawString(buf, 0, y), y);
+	pad(last[3], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
 	snprintf(buf, sizeof(buf), "%4.2fmA", current_mA);
-	adjust(last[4], tft.drawString(buf, 0, y), y);
+	pad(last[4], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
 	snprintf(buf, sizeof(buf), "%4.1fmW", power_mW);
-	adjust(last[5], tft.drawString(buf, 0, y), y);
+	pad(last[5], tft.drawString(buf, 0, y), y);
 }
 
 void setup() {
@@ -128,15 +143,17 @@ void setup() {
 	pinMode(SWITCH, INPUT_PULLUP);
 	debug = digitalRead(SWITCH) == LOW || cfg.debug;
 
-	int bg = debug? TFT_RED: TFT_BLUE;
+	bgcolor = debug? TFT_RED: TFT_BLUE;
 
 	tft.init();
-	tft.setTextColor(TFT_WHITE, bg);
-	tft.fillScreen(bg);
+	tft.setTextColor(TFT_WHITE, bgcolor);
+	tft.fillScreen(bgcolor);
 	tft.setCursor(0, 0);
 	tft.setRotation(3);
 
-	rssi.colors(TFT_WHITE, bg);
+	x9c.begin(X9C_CS, X9C_INC, X9C_UD);
+
+	rssi.colors(TFT_WHITE, bgcolor);
 	rssi.init(tft.width() - 21, 0, 20, 20);
 
 	WiFi.mode(WIFI_STA);
@@ -212,7 +229,7 @@ void loop() {
 	current_mA = ina219.getCurrent_mA();
 	power_mW = ina219.getPower_mW();
 	loadvoltage = busvoltage + (shuntvoltage / 1000);
-	
+
 	if (swtch) {
 		swtch = false;
 		tv++;
@@ -220,6 +237,9 @@ void loop() {
 			tv = 0;
 		draw_vi();
 	}
+
+	float diff = busvoltage - cfg.presets[tv];
+	x9c.trimPot(1, diff < 0? X9C_DOWN: X9C_UP);
 
 	timers.run();
 }
