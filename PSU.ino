@@ -1,3 +1,4 @@
+#include <Stator.h>
 #include <Wire.h>
 #include <Adafruit_INA219.h>
 #include <SPI.h>
@@ -69,6 +70,8 @@ static float shuntvoltage, busvoltage, current_mA, loadvoltage, power_mW;
 static int wr, tv;
 static SimpleTimer timers;
 
+static Stator<long> switchTime;
+
 static void draw_rssi() {
 	if (wr != 31) {
 		int r = wr;
@@ -81,14 +84,6 @@ static void pad(int16_t &last, int16_t x, int16_t y) {
 	if (last > x)
 		tft.fillRect(x, y, last - x, tft.fontHeight(), TFT_BLUE);
 	last = x;
-}
-
-static void set_voltage(float v) {
-	const float rh = 470, rl_max = 11000, vr = 1.25;
-
-	float rl = rh/vr * (v - vr);
-tft.drawFloat(rl, 2, 100, 100, 0);
-	x9c.setPot((uint8_t)100 * (rl / rl_max), false);
 }
 
 static void draw_vi() {
@@ -230,13 +225,10 @@ void loop() {
 	power_mW = ina219.getPower_mW();
 	loadvoltage = busvoltage + (shuntvoltage / 1000);
 
-	static long last_switch;
-	long now = millis();
-
 	if (swtch) {
 		swtch = false;
-		if (now - last_switch > 500) {
-			last_switch = now;
+		switchTime = millis();
+		if (switchTime.changedBy(500)) {
 			tv++;
 			if (tv == sizeof(cfg.presets) / sizeof(cfg.presets[0]) || cfg.presets[tv] == 0.0)
 				tv = 0;
@@ -244,8 +236,8 @@ void loop() {
 		}
 	}
 
-	float diff = busvoltage - cfg.presets[tv];
-	if (fabs(diff) / busvoltage > 0.02)
+	float diff = (busvoltage - cfg.presets[tv]) / busvoltage;
+	if (fabs(diff) > 0.015)
 		x9c.trimPot(1, diff < 0? X9C_DOWN: X9C_UP);
 
 	timers.run();
