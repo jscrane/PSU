@@ -29,7 +29,6 @@ X9C x9c;
 #define X9C_INC	RX
 
 MDNSResponder mdns;
-WiFiClient wifiClient;
 ESP8266WebServer server(80);
 ESP8266HTTPUpdateServer httpUpdater;
 DNSServer dnsServer;
@@ -56,7 +55,7 @@ void config::configure(JsonObject &o) {
 	JsonArray &p = o[F("presets")];
 	if (p.success())
 		for (int i = 0; i < p.size() && i < sizeof(presets) / sizeof(presets[0]); i++)
-			presets[i] = p.get<float>(i);
+			presets[i] = p[i][F("preset")] | 0.0;
 }
 
 static const char *config_file = "/config.json";
