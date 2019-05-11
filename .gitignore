@@ -5,3 +5,4 @@ spiffs.img
 *.cpp.d
 .lib
 .*.swp
+data/config.json
