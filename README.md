@@ -4,9 +4,7 @@ Software-controlled variable-voltage power supply with current and power monitor
 Features:
 - Digital Potentiometer for software-controlled adjustment
 - Common voltages preset through web interface
-- Voltage adjustment via Rotary Encoder
 - TFT LCD to display output voltage and current
-- Software-controlled fuse
 
 ## Hardware
 Display hardware as [WifiWeatherGuy](https://cadlab.io/project/1280/master/files):
@@ -19,7 +17,6 @@ PSU hardware:
 - [LM317](https://en.wikipedia.org/wiki/LM317) variable voltage regulator
 - [INA219](https://www.adafruit.com/product/904) voltage and current sensor
 - [X9C103P](https://www.renesas.com/us/en/products/data-converters/digital-potentiometers/dcp/device/X9C103.html) digital potentiometer
-- [Rotary Encoder](https://en.wikipedia.org/wiki/Rotary_encoder)
 - Old laptop transformer (19v)
 
 ## Software
@@ -29,3 +26,4 @@ PSU hardware:
 - [Adafruit_INA219](https://github.com/adafruit/Adafruit_INA219) v1.0.4
 - [Arduino-X9C](https://github.com/philbowles/Arduino-X9C) v0.9.0
 - [SimpleTimer](https://github.com/schinken/SimpleTimer)
+- [Stator](https://github.com/PTS93/Stator)
