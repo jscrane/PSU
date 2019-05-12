@@ -87,35 +87,42 @@ static void pad(int16_t &last, int16_t x, int16_t y) {
 
 static void draw_vi() {
 	char buf[32];
-	static int16_t last[6];
+	static int16_t last[7];
 
 	tft.setTextFont(0);
 	int16_t y = 1;
 	tft.setCursor(0, y);
 
-	snprintf(buf, sizeof(buf), "Bus: %4.2fV", busvoltage);
+	if (*cfg.ssid && connected)
+		strlcpy(buf, cfg.ssid, sizeof(buf));
+	else
+		strlcpy(buf, "Not connected", sizeof(buf));
 	pad(last[0], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
-	snprintf(buf, sizeof(buf), "Shunt: %4.2fmV", shuntvoltage);
+	snprintf(buf, sizeof(buf), "Bus: %4.2fV", busvoltage);
 	pad(last[1], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
-	snprintf(buf, sizeof(buf), "Target: %4.1fV", cfg.presets[tv]);
+	snprintf(buf, sizeof(buf), "Shunt: %4.2fmV", shuntvoltage);
 	pad(last[2], tft.drawString(buf, 0, y), y);
+
+	y += tft.fontHeight();
+	snprintf(buf, sizeof(buf), "Target: %4.1fV", cfg.presets[tv]);
+	pad(last[3], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
 	tft.setTextFont(4);
 	snprintf(buf, sizeof(buf), "%4.2fV", loadvoltage);
-	pad(last[3], tft.drawString(buf, 0, y), y);
-
-	y += tft.fontHeight();
-	snprintf(buf, sizeof(buf), "%4.2fmA", current_mA);
 	pad(last[4], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
-	snprintf(buf, sizeof(buf), "%4.1fmW", power_mW);
+	snprintf(buf, sizeof(buf), "%4.2fmA", current_mA);
 	pad(last[5], tft.drawString(buf, 0, y), y);
+
+	y += tft.fontHeight();
+	snprintf(buf, sizeof(buf), "%4.1fmW", power_mW);
+	pad(last[6], tft.drawString(buf, 0, y), y);
 }
 
 void setup() {
