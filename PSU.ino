@@ -89,10 +89,10 @@ static void draw_vi() {
 	char buf[32];
 	static int16_t last[6];
 
-	tft.setCursor(0, 1);
 	tft.setTextFont(0);
+	int16_t y = 1;
+	tft.setCursor(0, y);
 
-	int16_t x, y = 1;
 	snprintf(buf, sizeof(buf), "Bus: %4.2fV", busvoltage);
 	pad(last[0], tft.drawString(buf, 0, y), y);
 
