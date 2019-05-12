@@ -55,14 +55,13 @@ void config::configure(JsonObject &o) {
 	JsonArray &p = o[F("presets")];
 	if (p.success())
 		for (int i = 0; i < p.size() && i < sizeof(presets) / sizeof(presets[0]); i++)
-			presets[i] = p[i][F("preset")] | 0.0;
+			presets[i] = p.get<float>(i);
 }
 
 static const char *config_file = "/config.json";
 static const unsigned long UPDATE_RSSI = 1000, UPDATE_VI = 250;
 
 static volatile bool swtch;
-static bool connected;
 static RSSI rssi(tft, 5);
 
 static float shuntvoltage, busvoltage, current_mA, loadvoltage, power_mW;
@@ -93,7 +92,7 @@ static void draw_vi() {
 	int16_t y = 1;
 	tft.setCursor(0, y);
 
-	if (*cfg.ssid && connected)
+	if (WiFi.status() == WL_CONNECTED)
 		strlcpy(buf, cfg.ssid, sizeof(buf));
 	else
 		strlcpy(buf, "Not connected", sizeof(buf));
@@ -167,7 +166,6 @@ void setup() {
 			DBG(print('.'));
 			rssi.update(updater([i](int b) { return i % 5 == b; }));
 		}
-		connected = WiFi.status() == WL_CONNECTED;
 	}
 
 	server.on("/config", HTTP_POST, []() {
@@ -195,17 +193,17 @@ void setup() {
 	} else
 		ERR(println(F("Error starting mDNS")));
 
-	if (!connected) {
+	if (WiFi.status() == WL_CONNECTED) {
+		DBG(println());
+		DBG(print(F("Connected to ")));
+		DBG(println(cfg.ssid));
+		DBG(println(WiFi.localIP()));
+	} else {
 		WiFi.softAP(cfg.hostname);
 		DBG(print(F("Connect to SSID: ")));
 		DBG(print(cfg.hostname));
 		DBG(println(F(" to configure WIFI")));
 		dnsServer.start(53, "*", WiFi.softAPIP());
-	} else {
-		DBG(println());
-		DBG(print(F("Connected to ")));
-		DBG(println(cfg.ssid));
-		DBG(println(WiFi.localIP()));
 	}
 
 	attachInterrupt(SWITCH, []() { swtch=true; }, FALLING);
@@ -220,7 +218,7 @@ void loop() {
 	mdns.update();
 	server.handleClient();
 
-	if (!connected)
+	if (WiFi.status() != WL_CONNECTED)
 		dnsServer.processNextRequest();
 
 	wr = WiFi.RSSI();
