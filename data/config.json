@@ -3,5 +3,5 @@
  "password": "",
  "hostname": "psu",
  "debug": false,
- "presets": [ 3.3, 5., 9., 12. ]
+ "presets": [ 3.3, 5, 9, 12 ]
 }
