@@ -193,7 +193,7 @@ void setup() {
 		DBG(println(F("mDNS started")));
 		mdns.addService("http", "tcp", 80);
 	} else
-		ERR(println(F("Error starting MDNS")));
+		ERR(println(F("Error starting mDNS")));
 
 	if (!connected) {
 		WiFi.softAP(cfg.hostname);
