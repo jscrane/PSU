@@ -62,15 +62,16 @@ static const char *config_file = "/config.json";
 static const unsigned long UPDATE_RSSI = 1000, UPDATE_VI = 250;
 
 static RSSI rssi(tft, 5);
+const int rssi_error = 31;
 
 static float shuntvoltage, busvoltage, current_mA, loadvoltage, power_mW;
-static int wr, tv;
+static int wr = rssi_error, tv;
 static SimpleTimer timers;
 
 static Stator<bool> swtch;
 
 static void draw_rssi() {
-	if (wr != 31) {
+	if (wr != rssi_error) {
 		int r = wr;
 		const int t[] = {-90, -80, -70, -67, -40};
 		rssi.update(updater([r, t](int i)->bool { return r > t[i]; }));
@@ -156,15 +157,19 @@ void setup() {
 
 	WiFi.mode(WIFI_STA);
 	WiFi.hostname(cfg.hostname);
+
 	if (*cfg.ssid) {
 		WiFi.setAutoReconnect(true);
 		WiFi.begin(cfg.ssid, cfg.password);
-		for (int i = 0; i < 60 && WiFi.status() != WL_CONNECTED; i++) {
-			delay(500);
-			DBG(print('.'));
-			rssi.update(updater([i](int b) { return i % 5 == b; }));
-		}
 	}
+
+	if (WiFi.softAP(cfg.hostname)) {
+		DBG(print(F("Connect to SSID: ")));
+		DBG(print(cfg.hostname));
+		DBG(println(F(" to configure WIFI")));
+		dnsServer.start(53, "*", WiFi.softAPIP());
+	} else
+		ERR(println(F("Error starting softAP")));
 
 	server.on("/config", HTTP_POST, []() {
 		if (server.hasArg("plain")) {
@@ -191,19 +196,6 @@ void setup() {
 	} else
 		ERR(println(F("Error starting mDNS")));
 
-	if (WiFi.status() == WL_CONNECTED) {
-		DBG(println());
-		DBG(print(F("Connected to ")));
-		DBG(println(cfg.ssid));
-		DBG(println(WiFi.localIP()));
-	} else {
-		WiFi.softAP(cfg.hostname);
-		DBG(print(F("Connect to SSID: ")));
-		DBG(print(cfg.hostname));
-		DBG(println(F(" to configure WIFI")));
-		dnsServer.start(53, "*", WiFi.softAPIP());
-	}
-
 	attachInterrupt(SWITCH, []() { swtch=true; }, FALLING);
 	ina219.begin();
 
@@ -215,11 +207,15 @@ void loop() {
 
 	mdns.update();
 	server.handleClient();
+	dnsServer.processNextRequest();
 
-	if (WiFi.status() != WL_CONNECTED)
-		dnsServer.processNextRequest();
-
-	wr = WiFi.RSSI();
+	if (WiFi.status() == WL_CONNECTED)
+		wr = WiFi.RSSI();
+	else {
+		int i = (millis() / 500);
+		rssi.update(updater([i](int b) { return i % 5 == b; }));
+		delay(500);
+	}
 
 	shuntvoltage = ina219.getShuntVoltage_mV();
 	busvoltage = ina219.getBusVoltage_V();
