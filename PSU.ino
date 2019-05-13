@@ -140,8 +140,7 @@ void setup() {
 	}
 
 	pinMode(SWITCH, INPUT_PULLUP);
-	debug = digitalRead(SWITCH) == LOW || cfg.debug;
-
+	debug = cfg.debug;
 	bgcolor = debug? TFT_RED: TFT_BLUE;
 
 	tft.init();
