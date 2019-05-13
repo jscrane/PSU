@@ -1,4 +1,3 @@
-#include <Stator.h>
 #include <Wire.h>
 #include <Adafruit_INA219.h>
 #include <SPI.h>
@@ -17,6 +16,7 @@
 #include "Configuration.h"
 #include "dbg.h"
 #include "rssi.h"
+#include "Stator.h"
 
 #define SWITCH  D3
 
@@ -61,14 +61,13 @@ void config::configure(JsonObject &o) {
 static const char *config_file = "/config.json";
 static const unsigned long UPDATE_RSSI = 1000, UPDATE_VI = 250;
 
-static volatile bool swtch;
 static RSSI rssi(tft, 5);
 
 static float shuntvoltage, busvoltage, current_mA, loadvoltage, power_mW;
 static int wr, tv;
 static SimpleTimer timers;
 
-static Stator<long> switchTime;
+static Stator<bool> swtch;
 
 static void draw_rssi() {
 	if (wr != 31) {
@@ -229,16 +228,13 @@ void loop() {
 	power_mW = ina219.getPower_mW();
 	loadvoltage = busvoltage + (shuntvoltage / 1000);
 
-	if (swtch) {
-		swtch = false;
-		switchTime = millis();
-		if (switchTime.changedBy(500)) {
-			tv++;
-			if (tv == sizeof(cfg.presets) / sizeof(cfg.presets[0]) || cfg.presets[tv] == 0.0)
-				tv = 0;
-			draw_vi();
-		}
+	if (swtch && swtch.changedAfter(500)) {
+		tv++;
+		if (tv == sizeof(cfg.presets) / sizeof(cfg.presets[0]) || cfg.presets[tv] == 0.0)
+			tv = 0;
+		draw_vi();
 	}
+	swtch = false;
 
 	float diff = (busvoltage - cfg.presets[tv]) / busvoltage;
 	if (fabs(diff) > 0.015)
