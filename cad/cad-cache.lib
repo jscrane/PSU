@@ -1,6 +1,29 @@
 EESchema-LIBRARY Version 2.4
 #encoding utf-8
 #
+# 1N4001_1N4001
+#
+DEF ~1N4001_1N4001 D 0 40 N N 1 L N
+F0 "D" -110 100 50 H V L BNN
+F1 "1N4001_1N4001" 0 0 50 H I L BNN
+F2 "DO41-10" 0 0 50 H I L BNN
+F3 "ON Semiconductor" 0 0 50 H I L BNN
+F4 "None" 0 0 50 H I L BNN
+F5 "DO-41 ON Semiconductor" 0 0 50 H I L BNN
+F6 "Unavailable" 0 0 50 H I L BNN
+F7 "1N4001" 0 0 50 H I L BNN
+F8 "Diode, Standard, 1A, 50V" 0 0 50 H I L BNN
+DRAW
+P 2 0 0 10 0 -50 100 0 N
+P 2 0 0 10 0 50 0 -50 N
+P 2 0 0 10 100 0 0 50 N
+P 2 0 0 10 100 0 100 -50 N
+P 2 0 0 10 100 50 100 0 N
+X ANODE A -100 0 100 R 40 40 0 0 P
+X CATHODE C 200 0 100 L 40 40 0 0 P
+ENDDRAW
+ENDDEF
+#
 # Connector_Conn_01x06_Male
 #
 DEF Connector_Conn_01x06_Male J 0 40 Y N 1 F N
