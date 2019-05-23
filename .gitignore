@@ -3,3 +3,7 @@
 *.d
 cad/PSU.bak
 cad/PSU.kicad_pcb-bak
+.*.swp
+*.bin
+*.elf
+spiffs.img
