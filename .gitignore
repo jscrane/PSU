@@ -1,8 +1,4 @@
-spiffs.img
-*.ino.bin
-*.ino.elf
-*.cpp.o
-*.cpp.d
 .lib
-.*.swp
-data/config.json
+*.o
+*.d
+cad/PSU.bak
