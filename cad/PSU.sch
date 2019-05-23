@@ -371,30 +371,12 @@ Wire Wire Line
 	7150 3150 7150 3200
 Wire Wire Line
 	7150 3200 7200 3200
-$Comp
-L 1N4001:1N4001 D1
-U 1 1 5CE165D2
-P 4200 2650
-F 0 "D1" H 4250 2775 50  0000 C CNN
-F 1 "1N4001" H 4200 2650 50  0001 L BNN
-F 2 "Diode_THT:D_A-405_P10.16mm_Horizontal" H 4200 2650 50  0001 L BNN
-F 3 "ON Semiconductor" H 4200 2650 50  0001 L BNN
-F 4 "None" H 4200 2650 50  0001 L BNN "Field4"
-F 5 "DO-41 ON Semiconductor" H 4200 2650 50  0001 L BNN "Field5"
-F 6 "Unavailable" H 4200 2650 50  0001 L BNN "Field6"
-F 7 "1N4001" H 4200 2650 50  0001 L BNN "Field7"
-F 8 "Diode, Standard, 1A, 50V" H 4200 2650 50  0001 L BNN "Field8"
-	1    4200 2650
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	3900 2650 4100 2650
 Wire Wire Line
 	4400 2650 4550 2650
 Wire Wire Line
 	5500 4000 5500 4250
-Wire Wire Line
-	5500 4000 5700 4000
 Wire Wire Line
 	5500 4350 5700 4350
 Wire Wire Line
@@ -413,25 +395,6 @@ F 3 "~" H 6000 4150 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Connection ~ 6000 4000
-$Comp
-L 1N4001:1N4001 D2
-U 1 1 5CE1E838
-P 5700 4200
-F 0 "D2" V 5750 4120 50  0000 R CNN
-F 1 "1N4001" H 5700 4200 50  0001 L BNN
-F 2 "Diode_THT:D_A-405_P10.16mm_Horizontal" H 5700 4200 50  0001 L BNN
-F 3 "ON Semiconductor" H 5700 4200 50  0001 L BNN
-F 4 "None" H 5700 4200 50  0001 L BNN "Field4"
-F 5 "DO-41 ON Semiconductor" H 5700 4200 50  0001 L BNN "Field5"
-F 6 "Unavailable" H 5700 4200 50  0001 L BNN "Field6"
-F 7 "1N4001" H 5700 4200 50  0001 L BNN "Field7"
-F 8 "Diode, Standard, 1A, 50V" H 5700 4200 50  0001 L BNN "Field8"
-	1    5700 4200
-	0    -1   -1   0   
-$EndComp
-Connection ~ 5700 4000
-Wire Wire Line
-	5700 4000 6000 4000
 Wire Wire Line
 	6000 4300 6000 4350
 Wire Wire Line
@@ -500,7 +463,6 @@ F 3 "~" H 4400 2650 50  0001 C CNN
 	1    4400 2650
 	1    0    0    -1  
 $EndComp
-Connection ~ 4400 2650
 Wire Wire Line
 	2500 4150 2650 4150
 Wire Wire Line
@@ -539,4 +501,32 @@ NoConn ~ 8000 3900
 NoConn ~ 7200 3900
 NoConn ~ 7200 3500
 NoConn ~ 5000 5050
+$Comp
+L Diode:1N4001 D1
+U 1 1 5CE7B69A
+P 4250 2650
+F 0 "D1" H 4250 2434 50  0000 C CNN
+F 1 "1N4001" H 4250 2525 50  0000 C CNN
+F 2 "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal" H 4250 2475 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/88503/1n4001.pdf" H 4250 2650 50  0001 C CNN
+	1    4250 2650
+	-1   0    0    1   
+$EndComp
+Connection ~ 4400 2650
+Wire Wire Line
+	5500 4000 5700 4000
+$Comp
+L Diode:1N4001 D2
+U 1 1 5CE80A0F
+P 5700 4150
+F 0 "D2" V 5654 4229 50  0000 L CNN
+F 1 "1N4001" V 5745 4229 50  0000 L CNN
+F 2 "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal" H 5700 3975 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/88503/1n4001.pdf" H 5700 4150 50  0001 C CNN
+	1    5700 4150
+	0    1    1    0   
+$EndComp
+Connection ~ 5700 4000
+Wire Wire Line
+	5700 4000 6000 4000
 $EndSCHEMATC
