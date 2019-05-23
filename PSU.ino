@@ -21,12 +21,16 @@
 #define SWITCH  D3
 
 Adafruit_INA219 ina219;
+TwoWire wire;
 TFT_eSPI tft;
 X9C x9c;
 
 #define X9C_CS	D0
-#define X9C_UD	D4
-#define X9C_INC	RX
+#define X9C_UD	RX
+#define X9C_INC	D4
+
+#define SDA	D1
+#define SCL	D2
 
 MDNSResponder mdns;
 ESP8266WebServer server(80);
@@ -197,7 +201,9 @@ void setup() {
 		ERR(println(F("Error starting mDNS")));
 
 	attachInterrupt(SWITCH, []() { swtch=true; }, FALLING);
-	ina219.begin();
+
+	wire.begin(SDA, SCL);
+	ina219.begin(&wire);
 
 	timers.setInterval(UPDATE_RSSI, draw_rssi);
 	timers.setInterval(UPDATE_VI, draw_vi);

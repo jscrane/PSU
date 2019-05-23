@@ -317,30 +317,6 @@ Wire Wire Line
 	8150 5250 8150 3700
 Wire Wire Line
 	8150 3700 8000 3700
-Wire Wire Line
-	6400 5150 7150 5150
-Wire Wire Line
-	7150 5150 7150 3800
-Wire Wire Line
-	7150 3800 7200 3800
-Wire Wire Line
-	5850 3400 6100 3400
-Wire Wire Line
-	6100 3400 6100 3700
-Wire Wire Line
-	6100 3700 7200 3700
-Wire Wire Line
-	7200 3600 6050 3600
-Wire Wire Line
-	6050 3600 6050 3500
-Wire Wire Line
-	6050 3500 5850 3500
-Wire Wire Line
-	7200 3400 7100 3400
-Wire Wire Line
-	7100 3400 7100 5350
-Wire Wire Line
-	7100 5350 6400 5350
 $Comp
 L power:+5V #PWR0112
 U 1 1 5CD9E06C
@@ -529,4 +505,28 @@ $EndComp
 Connection ~ 5700 4000
 Wire Wire Line
 	5700 4000 6000 4000
+Wire Wire Line
+	6400 5150 7050 5150
+Wire Wire Line
+	7050 5150 7050 3400
+Wire Wire Line
+	7050 3400 7200 3400
+Wire Wire Line
+	6400 5350 7100 5350
+Wire Wire Line
+	7100 5350 7100 3800
+Wire Wire Line
+	7100 3800 7200 3800
+Wire Wire Line
+	5850 3500 6050 3500
+Wire Wire Line
+	6050 3500 6050 3700
+Wire Wire Line
+	6050 3700 7200 3700
+Wire Wire Line
+	5850 3400 6100 3400
+Wire Wire Line
+	6100 3400 6100 3600
+Wire Wire Line
+	6100 3600 7200 3600
 $EndSCHEMATC
