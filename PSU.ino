@@ -29,8 +29,8 @@ X9C x9c;
 #define X9C_UD	RX
 #define X9C_INC	D4
 
-#define SDA	D1
-#define SCL	D2
+#define SDA	D2
+#define SCL	D1
 
 MDNSResponder mdns;
 ESP8266WebServer server(80);
