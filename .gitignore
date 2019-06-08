@@ -1,4 +1,4 @@
-.lib
+.build/
 *.o
 *.d
 cad/PSU.bak
@@ -7,3 +7,4 @@ cad/PSU.kicad_pcb-bak
 *.bin
 *.elf
 spiffs.img
+platform.mk
