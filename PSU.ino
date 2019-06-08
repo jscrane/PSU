@@ -48,18 +48,18 @@ public:
 	bool debug;
 	float presets[10];
 
-	void configure(JsonObject &o);
+	void configure(JsonDocument &doc);
 } cfg;
 
-void config::configure(JsonObject &o) {
+void config::configure(JsonDocument &o) {
 	strlcpy(ssid, o[F("ssid")] | "", sizeof(ssid));
 	strlcpy(password, o[F("password")] | "", sizeof(password));
 	strlcpy(hostname, o[F("hostname")] | "", sizeof(hostname));
 	debug = o[F("debug")] | false;
-	JsonArray &p = o[F("presets")];
-	if (p.success())
+	const JsonArray &p = o[F("presets")];
+	if (!p.isNull())
 		for (int i = 0; i < p.size() && i < sizeof(presets) / sizeof(presets[0]); i++)
-			presets[i] = p.get<float>(i);
+			presets[i] = p[i].as<float>();
 }
 
 static const char *config_file = "/config.json";

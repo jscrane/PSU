@@ -1,19 +1,23 @@
 #include <FS.h>
 #include <ArduinoJson.h>
 #include "Configuration.h"
+#include "dbg.h"
 
 bool Configuration::read_file(const char *filename) {
-  File f = SPIFFS.open(filename, "r");
-  if (!f)
-    return false;
+	File f = SPIFFS.open(filename, "r");
+	if (!f)
+		return false;
 
-  DynamicJsonBuffer json(JSON_OBJECT_SIZE(11) + 210);
-  JsonObject &root = json.parseObject(f);
-  f.close();
-  if (!root.success())
-    return false;
+	DynamicJsonDocument doc(JSON_OBJECT_SIZE(11) + 210);
+	auto error = deserializeJson(doc, f);
+	f.close();
+	if (error) {
+		ERR(print(F("config: ")));
+		ERR(println(error.c_str()));
+		return false;
+	}
 
-  configure(root);
-  return true;
+	configure(doc);
+	return true;
 }
 
