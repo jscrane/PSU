@@ -8,3 +8,4 @@ cad/PSU.kicad_pcb-bak
 *.elf
 spiffs.img
 platform.mk
+data/config.json
