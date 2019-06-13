@@ -38,7 +38,7 @@ ESP8266HTTPUpdateServer httpUpdater;
 DNSServer dnsServer;
 
 bool debug;
-unsigned bgcolor;
+unsigned bgcolor, fgcolor;
 
 class config: public Configuration {
 public:
@@ -74,6 +74,8 @@ static SimpleTimer timers;
 
 static Stator<bool> swtch;
 
+void ICACHE_RAM_ATTR switch_handler() { swtch = true; }
+
 static void draw_rssi() {
 	if (wr != rssi_error) {
 		int r = wr;
@@ -84,23 +86,30 @@ static void draw_rssi() {
 
 static void pad(int16_t &last, int16_t x, int16_t y) {
 	if (last > x)
-		tft.fillRect(x, y, last - x, tft.fontHeight(), TFT_BLUE);
+		tft.fillRect(x, y, last - x, tft.fontHeight(), bgcolor);
 	last = x;
 }
 
 static void draw_vi() {
 	char buf[32];
+	static wl_status_t stat = WL_IDLE_STATUS;
 	static int16_t last[7];
 
 	tft.setTextFont(0);
 	int16_t y = 1;
 	tft.setCursor(0, y);
 
-	if (WiFi.status() == WL_CONNECTED)
+	wl_status_t s = WiFi.status();
+	if (s == WL_DISCONNECTED)
+		strlcpy(buf, "Connecting...", sizeof(buf));
+	else if (s == WL_CONNECTED) {
 		strlcpy(buf, cfg.ssid, sizeof(buf));
-	else
-		strlcpy(buf, "Not connected", sizeof(buf));
+		if (stat != s)
+			tft.fillRect(0, y, last[0], tft.fontHeight(), bgcolor);
+	}
+
 	pad(last[0], tft.drawString(buf, 0, y), y);
+	stat = s;
 
 	y += tft.fontHeight();
 	snprintf(buf, sizeof(buf), "Bus: %4.2fV", busvoltage);
@@ -116,20 +125,25 @@ static void draw_vi() {
 
 	y += tft.fontHeight();
 	tft.setTextFont(4);
+	tft.setTextColor(TFT_GREEN);
 	snprintf(buf, sizeof(buf), "%4.2fV", loadvoltage);
 	pad(last[4], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
+	tft.setTextColor(TFT_YELLOW);
 	snprintf(buf, sizeof(buf), "%4.2fmA", current_mA);
 	pad(last[5], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
+	tft.setTextColor(TFT_PINK);
 	snprintf(buf, sizeof(buf), "%4.1fmW", power_mW);
 	pad(last[6], tft.drawString(buf, 0, y), y);
+
+	tft.setTextColor(fgcolor);
 }
 
 void setup() {
-	Serial.begin(115200);
+	Serial.begin(TERMINAL_SPEED);
 	Serial.println(F("Booting!"));
 
 	bool result = SPIFFS.begin();
@@ -146,10 +160,11 @@ void setup() {
 
 	pinMode(SWITCH, INPUT_PULLUP);
 	debug = cfg.debug;
-	bgcolor = debug? TFT_RED: TFT_BLUE;
+	bgcolor = debug? TFT_RED: TFT_BLACK;
+	fgcolor = TFT_CYAN;
 
 	tft.init();
-	tft.setTextColor(TFT_WHITE, bgcolor);
+	tft.setTextColor(TFT_CYAN, bgcolor);
 	tft.fillScreen(bgcolor);
 	tft.setCursor(0, 0);
 	tft.setRotation(3);
@@ -200,7 +215,7 @@ void setup() {
 	} else
 		ERR(println(F("Error starting mDNS")));
 
-	attachInterrupt(SWITCH, []() { swtch=true; }, FALLING);
+	attachInterrupt(SWITCH, switch_handler, FALLING);
 
 	wire.begin(SDA, SCL);
 	ina219.begin(&wire);
