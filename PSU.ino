@@ -64,13 +64,14 @@ void config::configure(JsonDocument &o) {
 }
 
 static const char *config_file = "/config.json";
-static const unsigned long UPDATE_RSSI = 1000, UPDATE_VI = 250;
+static const unsigned long UPDATE_RSSI = 500, UPDATE_VI = 250;
+static const unsigned long SWITCH_INTERVAL = 1000;
 
 static RSSI rssi(tft, 5);
 const int rssi_error = 31;
 
 static float shuntvoltage, busvoltage, current_mA, loadvoltage, power_mW;
-static int wr = rssi_error, tv;
+static int tv;
 static SimpleTimer timers;
 
 static Stator<bool> swtch;
@@ -78,8 +79,13 @@ static Stator<bool> swtch;
 void ICACHE_RAM_ATTR switch_handler() { swtch = true; }
 
 static void draw_rssi() {
-	if (wr != rssi_error) {
-		int r = wr;
+	if (WiFi.status() != WL_CONNECTED) {
+		int i = (millis() / UPDATE_VI);
+		rssi.update(updater([i](int b) { return i % 5 == b; }));
+		return;
+	}
+	int r = WiFi.RSSI();
+	if (r != rssi_error) {
 		const int t[] = {-90, -80, -70, -67, -40};
 		rssi.update(updater([r, t](int i)->bool { return r > t[i]; }));
 	}
@@ -210,7 +216,7 @@ void setup() {
 	} else
 		ERR(println(F("Error starting mDNS")));
 
-	attachInterrupt(SWITCH, switch_handler, FALLING);
+	attachInterrupt(digitalPinToInterrupt(SWITCH), switch_handler, RISING);
 
 	wire.begin(SDA, SCL);
 	ina219.begin(&wire);
@@ -220,18 +226,9 @@ void setup() {
 }
 
 void loop() {
-
 	mdns.update();
 	server.handleClient();
 	dnsServer.processNextRequest();
-
-	if (WiFi.status() == WL_CONNECTED)
-		wr = WiFi.RSSI();
-	else {
-		int i = (millis() / 500);
-		rssi.update(updater([i](int b) { return i % 5 == b; }));
-		delay(500);
-	}
 
 	shuntvoltage = ina219.getShuntVoltage_mV();
 	busvoltage = ina219.getBusVoltage_V();
@@ -239,7 +236,7 @@ void loop() {
 	power_mW = ina219.getPower_mW();
 	loadvoltage = busvoltage + (shuntvoltage / 1000);
 
-	if (swtch && swtch.changedAfter(500)) {
+	if (swtch && swtch.changedAfter(SWITCH_INTERVAL)) {
 		tv++;
 		if (tv == sizeof(cfg.presets) / sizeof(cfg.presets[0]) || cfg.presets[tv] == 0.0)
 			tv = 0;
