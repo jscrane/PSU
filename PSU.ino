@@ -38,7 +38,8 @@ ESP8266HTTPUpdateServer httpUpdater;
 DNSServer dnsServer;
 
 bool debug;
-unsigned bgcolor, fgcolor;
+unsigned bgcolor;
+const unsigned fgcolor = TFT_CYAN;
 
 class config: public Configuration {
 public:
@@ -92,7 +93,6 @@ static void pad(int16_t &last, int16_t x, int16_t y) {
 
 static void draw_vi() {
 	char buf[32];
-	static wl_status_t stat = WL_IDLE_STATUS;
 	static int16_t last[7];
 
 	tft.setTextFont(0);
@@ -102,14 +102,10 @@ static void draw_vi() {
 	wl_status_t s = WiFi.status();
 	if (s == WL_DISCONNECTED)
 		strlcpy(buf, "Connecting...", sizeof(buf));
-	else if (s == WL_CONNECTED) {
+	else if (s == WL_CONNECTED)
 		strlcpy(buf, cfg.ssid, sizeof(buf));
-		if (stat != s)
-			tft.fillRect(0, y, last[0], tft.fontHeight(), bgcolor);
-	}
 
 	pad(last[0], tft.drawString(buf, 0, y), y);
-	stat = s;
 
 	y += tft.fontHeight();
 	snprintf(buf, sizeof(buf), "Bus: %4.2fV", busvoltage);
@@ -125,21 +121,21 @@ static void draw_vi() {
 
 	y += tft.fontHeight();
 	tft.setTextFont(4);
-	tft.setTextColor(TFT_GREEN);
+	tft.setTextColor(TFT_GREEN, bgcolor);
 	snprintf(buf, sizeof(buf), "%4.2fV", loadvoltage);
 	pad(last[4], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
-	tft.setTextColor(TFT_YELLOW);
+	tft.setTextColor(TFT_YELLOW, bgcolor);
 	snprintf(buf, sizeof(buf), "%4.2fmA", current_mA);
 	pad(last[5], tft.drawString(buf, 0, y), y);
 
 	y += tft.fontHeight();
-	tft.setTextColor(TFT_PINK);
+	tft.setTextColor(TFT_PINK, bgcolor);
 	snprintf(buf, sizeof(buf), "%4.1fmW", power_mW);
 	pad(last[6], tft.drawString(buf, 0, y), y);
 
-	tft.setTextColor(fgcolor);
+	tft.setTextColor(fgcolor, bgcolor);
 }
 
 void setup() {
@@ -160,8 +156,7 @@ void setup() {
 
 	pinMode(SWITCH, INPUT_PULLUP);
 	debug = cfg.debug;
-	bgcolor = debug? TFT_RED: TFT_BLACK;
-	fgcolor = TFT_CYAN;
+	bgcolor = debug? TFT_RED: TFT_NAVY;
 
 	tft.init();
 	tft.setTextColor(TFT_CYAN, bgcolor);
