@@ -4,9 +4,9 @@ View this project on [CADLAB.io](https://cadlab.io/project/1763).
 Software-controlled variable-voltage power supply with current and power monitoring.
 
 Features:
-- Digital Potentiometer for software-controlled adjustment
-- Common voltages preset through web interface
+- Common voltages preset through web interface (In Progress)
 - TFT LCD to display output voltage and current
+- Digital Potentiometer for software-controlled adjustment (TODO)
 
 ## Hardware
 Display hardware as [WifiWeatherGuy](https://cadlab.io/project/1280/master/files):
@@ -23,8 +23,9 @@ PSU hardware:
 
 ## Software
 - [Arduino](https://www.arduino.cc/en/main/software) v1.8.x
-- [Arduino/ESP8266](https://github.com/esp8266/Arduino) v2.5.0
-- [TFT_eSPI](https://github.com/Bodmer/TFT_eSPI) v1.1.3
+- [Arduino/ESP8266](https://github.com/esp8266/Arduino) v2.5.2
+- [ArduinoJson](https://arduinojson.org) v6.11.0
+- [TFT_eSPI](https://github.com/Bodmer/TFT_eSPI) v1.4.11
 - [Adafruit_INA219](https://github.com/adafruit/Adafruit_INA219) v1.0.4
 - [Arduino-X9C](https://github.com/philbowles/Arduino-X9C) v0.9.0
 - [SimpleTimer](https://github.com/schinken/SimpleTimer)
