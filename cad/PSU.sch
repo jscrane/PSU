@@ -348,8 +348,6 @@ Wire Wire Line
 Wire Wire Line
 	7150 3200 7200 3200
 Wire Wire Line
-	3900 2650 4100 2650
-Wire Wire Line
 	4400 2650 4550 2650
 Wire Wire Line
 	5500 4000 5500 4250
@@ -477,18 +475,6 @@ NoConn ~ 8000 3900
 NoConn ~ 7200 3900
 NoConn ~ 7200 3500
 NoConn ~ 5000 5050
-$Comp
-L Diode:1N4001 D1
-U 1 1 5CE7B69A
-P 4250 2650
-F 0 "D1" H 4250 2434 50  0000 C CNN
-F 1 "1N4001" H 4250 2525 50  0000 C CNN
-F 2 "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal" H 4250 2475 50  0001 C CNN
-F 3 "http://www.vishay.com/docs/88503/1n4001.pdf" H 4250 2650 50  0001 C CNN
-	1    4250 2650
-	-1   0    0    1   
-$EndComp
-Connection ~ 4400 2650
 Wire Wire Line
 	5500 4000 5700 4000
 $Comp
@@ -555,4 +541,7 @@ Wire Wire Line
 	6050 3500 6050 3600
 Wire Wire Line
 	6050 3600 7200 3600
+Wire Wire Line
+	3900 2650 4400 2650
+Connection ~ 4400 2650
 $EndSCHEMATC
