@@ -1,11 +1,14 @@
 .build/
 *.o
 *.d
-cad/PSU.bak
-cad/PSU.kicad_pcb-bak
 .*.swp
 *.bin
 *.elf
 spiffs.img
 platform.mk
 data/config.json
+cad/PSU.bak
+cad/PSU.kicad_pcb-bak
+cad/PSU.dsn
+cad/PSU.rules
+cad/PSU.ses
