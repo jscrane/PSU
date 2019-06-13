@@ -147,6 +147,7 @@ static void draw_vi() {
 void setup() {
 	Serial.begin(TERMINAL_SPEED);
 	Serial.println(F("Booting!"));
+	Serial.println(F(VERSION));
 
 	bool result = SPIFFS.begin();
 	if (!result) {
