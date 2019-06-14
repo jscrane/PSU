@@ -7,17 +7,14 @@ class RSSI {
 public:
 	RSSI(TFT_eSPI &tft, int n): _tft(tft), _n(n) {}
 
-	void init(int x, int y, int w, int h) {
+	void setBounds(int x, int y, int w, int h) {
 		_x = x;
 		_y = y;
 		_dx = w / _n;
 		_dy = h / _n;
 	}
 
-	void colors(int f, int b) {
-		_f = f;
-		_b = b;
-	}
+	void setColor(int f, int b) { _f = f; _b = b; }
 
 	void update(updater u) {
 		int h = _dy;

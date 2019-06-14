@@ -81,7 +81,7 @@ void ICACHE_RAM_ATTR switch_handler() { swtch = true; }
 
 static void draw_rssi() {
 	if (WiFi.status() != WL_CONNECTED) {
-		int i = (millis() / UPDATE_VI);
+		int i = (millis() / UPDATE_RSSI);
 		rssi.update(updater([i](int b) { return i % 5 == b; }));
 		return;
 	}
@@ -95,12 +95,7 @@ static void draw_rssi() {
 Label status(tft), bus(tft), shunt(tft), target(tft), load(tft), curr(tft), power(tft);
 
 static void draw_vi() {
-	wl_status_t s = WiFi.status();
-	if (s == WL_DISCONNECTED)
-		status.draw("Connecting...");
-	else
-		status.draw(cfg.ssid);
-
+	status.draw(WiFi.status() == WL_DISCONNECTED? "Connecting...": cfg.ssid);
 	bus.printf("Bus: %4.2fV", busvoltage);
 	shunt.printf("Shunt: %4.2fmV", shuntvoltage);
 	target.printf("Target: %4.1fV", cfg.presets[tv]);
@@ -165,10 +160,10 @@ void setup() {
 	power.setColor(TFT_PINK, bgcolor);
 	y += power.setFont(4);
 
-	x9c.begin(X9C_CS, X9C_INC, X9C_UD);
+	rssi.setColor(TFT_WHITE, bgcolor);
+	rssi.setBounds(tft.width() - 21, 0, 20, 20);
 
-	rssi.colors(TFT_WHITE, bgcolor);
-	rssi.init(tft.width() - 21, 0, 20, 20);
+	x9c.begin(X9C_CS, X9C_INC, X9C_UD);
 
 	WiFi.mode(WIFI_STA);
 	WiFi.hostname(cfg.hostname);
