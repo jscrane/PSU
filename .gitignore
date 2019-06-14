@@ -5,7 +5,7 @@
 *.bin
 *.elf
 spiffs.img
-platform.mk
+*.txt.mk
 data/config.json
 cad/PSU.bak
 cad/PSU.kicad_pcb-bak
