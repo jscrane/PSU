@@ -15,6 +15,7 @@
 
 #include "Configuration.h"
 #include "dbg.h"
+#include "label.h"
 #include "rssi.h"
 #include "Stator.h"
 
@@ -91,57 +92,21 @@ static void draw_rssi() {
 	}
 }
 
-static void pad(int16_t &last, int16_t x, int16_t y) {
-	if (last > x)
-		tft.fillRect(x, y, last - x, tft.fontHeight(), bgcolor);
-	last = x;
-}
+Label status(tft), bus(tft), shunt(tft), target(tft), load(tft), curr(tft), power(tft);
 
 static void draw_vi() {
-	char buf[32];
-	static int16_t last[7];
-
-	tft.setTextFont(0);
-	int16_t y = 1;
-	tft.setCursor(0, y);
-
 	wl_status_t s = WiFi.status();
 	if (s == WL_DISCONNECTED)
-		strlcpy(buf, "Connecting...", sizeof(buf));
-	else if (s == WL_CONNECTED)
-		strlcpy(buf, cfg.ssid, sizeof(buf));
+		status.draw("Connecting...");
+	else
+		status.draw(cfg.ssid);
 
-	pad(last[0], tft.drawString(buf, 0, y), y);
-
-	y += tft.fontHeight();
-	snprintf(buf, sizeof(buf), "Bus: %4.2fV", busvoltage);
-	pad(last[1], tft.drawString(buf, 0, y), y);
-
-	y += tft.fontHeight();
-	snprintf(buf, sizeof(buf), "Shunt: %4.2fmV", shuntvoltage);
-	pad(last[2], tft.drawString(buf, 0, y), y);
-
-	y += tft.fontHeight();
-	snprintf(buf, sizeof(buf), "Target: %4.1fV", cfg.presets[tv]);
-	pad(last[3], tft.drawString(buf, 0, y), y);
-
-	y += tft.fontHeight();
-	tft.setTextFont(4);
-	tft.setTextColor(TFT_GREEN, bgcolor);
-	snprintf(buf, sizeof(buf), "%4.2fV", loadvoltage);
-	pad(last[4], tft.drawString(buf, 0, y), y);
-
-	y += tft.fontHeight();
-	tft.setTextColor(TFT_YELLOW, bgcolor);
-	snprintf(buf, sizeof(buf), "%4.2fmA", current_mA);
-	pad(last[5], tft.drawString(buf, 0, y), y);
-
-	y += tft.fontHeight();
-	tft.setTextColor(TFT_PINK, bgcolor);
-	snprintf(buf, sizeof(buf), "%4.1fmW", power_mW);
-	pad(last[6], tft.drawString(buf, 0, y), y);
-
-	tft.setTextColor(fgcolor, bgcolor);
+	bus.printf("Bus: %4.2fV", busvoltage);
+	shunt.printf("Shunt: %4.2fmV", shuntvoltage);
+	target.printf("Target: %4.1fV", cfg.presets[tv]);
+	load.printf("%4.2fV", loadvoltage);
+	curr.printf("%4.2fmA", current_mA);
+	power.printf("%4.1fmW", power_mW);
 }
 
 void setup() {
@@ -166,10 +131,39 @@ void setup() {
 	bgcolor = debug? TFT_RED: TFT_NAVY;
 
 	tft.init();
-	tft.setTextColor(TFT_CYAN, bgcolor);
+	tft.setTextColor(fgcolor, bgcolor);
 	tft.fillScreen(bgcolor);
 	tft.setCursor(0, 0);
 	tft.setRotation(3);
+
+	int y = 1;
+	status.setPosition(0, y);
+	status.setColor(fgcolor, bgcolor);
+	y += status.setFont(1);
+
+	bus.setPosition(0, y);
+	bus.setColor(fgcolor, bgcolor);
+	y += bus.setFont(1);
+
+	shunt.setPosition(0, y);
+	shunt.setColor(fgcolor, bgcolor);
+	y += shunt.setFont(1);
+
+	target.setPosition(0, y);
+	target.setColor(fgcolor, bgcolor);
+	y += target.setFont(1);
+
+	load.setPosition(0, y);
+	load.setColor(TFT_GREEN, bgcolor);
+	y += load.setFont(4);
+
+	curr.setPosition(0, y);
+	curr.setColor(TFT_YELLOW, bgcolor);
+	y += curr.setFont(4);
+
+	power.setPosition(0, y);
+	power.setColor(TFT_PINK, bgcolor);
+	y += power.setFont(4);
 
 	x9c.begin(X9C_CS, X9C_INC, X9C_UD);
 
