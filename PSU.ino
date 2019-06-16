@@ -65,7 +65,7 @@ void config::configure(JsonDocument &o) {
 }
 
 static const char *config_file = "/config.json";
-static const unsigned long UPDATE_RSSI = 500, UPDATE_VI = 250;
+static const unsigned long UPDATE_RSSI = 500, UPDATE_VI = 250, SAMPLE_VI = 50;
 static const unsigned long SWITCH_INTERVAL = 1000;
 
 static RSSI rssi(tft, 5);
@@ -102,6 +102,18 @@ static void draw_vi() {
 	load.printf("%4.2fV", loadvoltage);
 	curr.printf("%4.2fmA", current_mA);
 	power.printf("%4.1fmW", power_mW);
+}
+
+static void sample_vi() {
+	shuntvoltage = ina219.getShuntVoltage_mV();
+	busvoltage = ina219.getBusVoltage_V();
+	current_mA = ina219.getCurrent_mA();
+	power_mW = ina219.getPower_mW();
+	loadvoltage = busvoltage + (shuntvoltage / 1000);
+
+	float diff = (busvoltage - cfg.presets[tv]) / busvoltage;
+	if (fabs(diff) > 0.015)
+		x9c.trimPot(1, diff < 0? X9C_DOWN: X9C_UP);
 }
 
 void setup() {
@@ -213,18 +225,14 @@ void setup() {
 
 	timers.setInterval(UPDATE_RSSI, draw_rssi);
 	timers.setInterval(UPDATE_VI, draw_vi);
+	timers.setInterval(SAMPLE_VI, sample_vi);
 }
 
 void loop() {
 	mdns.update();
 	server.handleClient();
 	dnsServer.processNextRequest();
-
-	shuntvoltage = ina219.getShuntVoltage_mV();
-	busvoltage = ina219.getBusVoltage_V();
-	current_mA = ina219.getCurrent_mA();
-	power_mW = ina219.getPower_mW();
-	loadvoltage = busvoltage + (shuntvoltage / 1000);
+	timers.run();
 
 	if (swtch && swtch.changedAfter(SWITCH_INTERVAL)) {
 		tv++;
@@ -233,10 +241,4 @@ void loop() {
 		draw_vi();
 	}
 	swtch = false;
-
-	float diff = (busvoltage - cfg.presets[tv]) / busvoltage;
-	if (fabs(diff) > 0.015)
-		x9c.trimPot(1, diff < 0? X9C_DOWN: X9C_UP);
-
-	timers.run();
 }
