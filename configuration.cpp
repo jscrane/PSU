@@ -1,6 +1,6 @@
 #include <FS.h>
 #include <ArduinoJson.h>
-#include "Configuration.h"
+#include "configuration.h"
 #include "dbg.h"
 
 bool Configuration::read_file(const char *filename) {

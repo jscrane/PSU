@@ -13,11 +13,12 @@
 #include <SimpleTimer.h>
 #include <X9C.h>
 
-#include "Configuration.h"
+#include "configuration.h"
 #include "dbg.h"
 #include "label.h"
 #include "rssi.h"
-#include "Stator.h"
+#include "stator.h"
+#include "smoother.h"
 
 #define SWITCH  D3
 
@@ -70,8 +71,10 @@ static const unsigned long SWITCH_INTERVAL = 1000;
 
 static RSSI rssi(tft, 5);
 const int rssi_error = 31;
+const size_t N = UPDATE_VI / SAMPLE_VI;
 
-static float shuntvoltage, busvoltage, current_mA, loadvoltage, power_mW;
+static Smoother<N> shunt_mV, bus_V, current_mA, power_mW;
+static Label status(tft), bus(tft), shunt(tft), target(tft), V(tft), I(tft), W(tft);
 static int tv;
 static SimpleTimer timers;
 
@@ -92,26 +95,23 @@ static void draw_rssi() {
 	}
 }
 
-Label status(tft), bus(tft), shunt(tft), target(tft), load(tft), curr(tft), power(tft);
-
 static void draw_vi() {
 	status.draw(WiFi.status() == WL_DISCONNECTED? "Connecting...": cfg.ssid);
-	bus.printf("Bus: %4.2fV", busvoltage);
-	shunt.printf("Shunt: %4.2fmV", shuntvoltage);
+	bus.printf("Bus: %4.2fV", bus_V.get());
+	shunt.printf("Shunt: %4.2fmV", shunt_mV.get());
 	target.printf("Target: %4.1fV", cfg.presets[tv]);
-	load.printf("%4.2fV", loadvoltage);
-	curr.printf("%4.2fmA", current_mA);
-	power.printf("%4.1fmW", power_mW);
+	V.printf("%4.2fV", bus_V.get() + shunt_mV.get() / 1000);
+	I.printf("%4.2fmA", current_mA.get());
+	W.printf("%4.1fmW", power_mW.get());
 }
 
 static void sample_vi() {
-	shuntvoltage = ina219.getShuntVoltage_mV();
-	busvoltage = ina219.getBusVoltage_V();
-	current_mA = ina219.getCurrent_mA();
-	power_mW = ina219.getPower_mW();
-	loadvoltage = busvoltage + (shuntvoltage / 1000);
+	shunt_mV.add(ina219.getShuntVoltage_mV());
+	bus_V.add(ina219.getBusVoltage_V());
+	current_mA.add(ina219.getCurrent_mA());
+	power_mW.add(ina219.getPower_mW());
 
-	float diff = (busvoltage - cfg.presets[tv]) / busvoltage;
+	float diff = (bus_V.get() - cfg.presets[tv]) / bus_V.get();
 	if (fabs(diff) > 0.015)
 		x9c.trimPot(1, diff < 0? X9C_DOWN: X9C_UP);
 }
@@ -160,17 +160,17 @@ void setup() {
 	target.setColor(fgcolor, bgcolor);
 	y += target.setFont(1);
 
-	load.setPosition(0, y);
-	load.setColor(TFT_GREEN, bgcolor);
-	y += load.setFont(4);
+	V.setPosition(0, y);
+	V.setColor(TFT_GREEN, bgcolor);
+	y += V.setFont(4);
 
-	curr.setPosition(0, y);
-	curr.setColor(TFT_YELLOW, bgcolor);
-	y += curr.setFont(4);
+	I.setPosition(0, y);
+	I.setColor(TFT_YELLOW, bgcolor);
+	y += I.setFont(4);
 
-	power.setPosition(0, y);
-	power.setColor(TFT_PINK, bgcolor);
-	y += power.setFont(4);
+	W.setPosition(0, y);
+	W.setColor(TFT_PINK, bgcolor);
+	y += W.setFont(4);
 
 	rssi.setColor(TFT_WHITE, bgcolor);
 	rssi.setBounds(tft.width() - 21, 0, 20, 20);
