@@ -22,11 +22,11 @@ PSU hardware:
 - Old laptop transformer (19v)
 
 ## Software
-- [Arduino](https://www.arduino.cc/en/main/software) v1.8.x
-- [Arduino/ESP8266](https://github.com/esp8266/Arduino) v2.5.2
-- [ArduinoJson](https://arduinojson.org) v6.11.0
-- [TFT_eSPI](https://github.com/Bodmer/TFT_eSPI) v1.4.11
-- [Adafruit_INA219](https://github.com/adafruit/Adafruit_INA219) v1.0.4
-- [Arduino-X9C](https://github.com/philbowles/Arduino-X9C) v0.9.0
+- [Arduino](https://www.arduino.cc/en/main/software) 1.8.x
+- [Arduino/ESP8266](https://github.com/esp8266/Arduino) 2.7.1
+- [ArduinoJson](https://arduinojson.org) 6.15.1
+- [TFT_eSPI](https://github.com/Bodmer/TFT_eSPI) 2.2.8
+- [Adafruit_INA219](https://github.com/adafruit/Adafruit_INA219) 1.0.4
+- [Arduino-X9C](https://github.com/philbowles/Arduino-X9C) 0.9.0
 - [SimpleTimer](https://github.com/schinken/SimpleTimer)
 - [Stator](https://github.com/PTS93/Stator)
