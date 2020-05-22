@@ -62,12 +62,13 @@ void config::configure(JsonDocument &o) {
 	const JsonArray &p = o[F("presets")];
 	if (!p.isNull())
 		for (int i = 0; i < p.size() && i < sizeof(presets) / sizeof(presets[0]); i++)
-			presets[i] = p[i].as<float>();
+			presets[i] = p[i][F("preset")];
 }
 
 static const char *config_file = "/config.json";
 static const unsigned long UPDATE_RSSI = 500, UPDATE_VI = 250, SAMPLE_VI = 50;
 static const unsigned long SWITCH_INTERVAL = 1000;
+static const unsigned long UPDATE_CONNECT = 500, CONNECT_TIME = 30000;
 
 static RSSI rssi(tft, 5);
 const int rssi_error = 31;
@@ -77,17 +78,13 @@ static Smoother<N> shunt_mV, bus_V, current_mA, power_mW;
 static Label status(tft), bus(tft), shunt(tft), target(tft), V(tft), I(tft), W(tft);
 static int tv;
 static SimpleTimer timers;
+static int connectTimer;
 
 static Stator<bool> swtch;
 
 void ICACHE_RAM_ATTR switch_handler() { swtch = true; }
 
 static void draw_rssi() {
-	if (WiFi.status() != WL_CONNECTED) {
-		int i = (millis() / UPDATE_RSSI);
-		rssi.update(updater([i](int b) { return i % 5 == b; }));
-		return;
-	}
 	int r = WiFi.RSSI();
 	if (r != rssi_error) {
 		const int t[] = {-90, -80, -70, -67, -40};
@@ -96,7 +93,6 @@ static void draw_rssi() {
 }
 
 static void draw_vi() {
-	status.draw(WiFi.status() == WL_DISCONNECTED? "Connecting...": cfg.ssid);
 	bus.printf("Bus: %4.2fV", bus_V.get());
 	shunt.printf("Shunt: %4.2fmV", shunt_mV.get());
 	target.printf("Target: %4.1fV", cfg.presets[tv]);
@@ -114,6 +110,39 @@ static void sample_vi() {
 	float diff = (bus_V.get() - cfg.presets[tv]) / bus_V.get();
 	if (fabs(diff) > 0.015)
 		x9c.trimPot(1, diff < 0? X9C_DOWN: X9C_UP);
+}
+
+static void captive_portal() {
+	WiFi.mode(WIFI_AP);
+	if (WiFi.softAP(cfg.hostname)) {
+		status.printf("SSID: %s", cfg.hostname);
+		DBG(print(F("Connect to SSID: ")));
+		DBG(print(cfg.hostname));
+		DBG(println(F(" to configure WIFI")));
+		dnsServer.start(53, "*", WiFi.softAPIP());
+	} else {
+		status.draw("Error starting softAP");
+		ERR(println(F("Error starting softAP")));
+	}
+}
+
+static void connecting() {
+	if (WiFi.status() == WL_CONNECTED) {
+		status.draw(cfg.ssid);
+		timers.disable(connectTimer);
+		timers.setInterval(UPDATE_RSSI, draw_rssi);
+		return;
+	}
+	unsigned now = millis();
+	if (now > CONNECT_TIME) {
+		timers.disable(connectTimer);
+		captive_portal();
+		return;
+	}
+	const char busy[] = "|/-\\";
+	int i = (now / UPDATE_RSSI);
+	status.printf("Connecting %c", busy[i % 4]);
+	rssi.update(updater([i](int b) { return i % 5 == b; }));
 }
 
 void setup() {
@@ -183,15 +212,8 @@ void setup() {
 	if (*cfg.ssid) {
 		WiFi.setAutoReconnect(true);
 		WiFi.begin(cfg.ssid, cfg.password);
-	}
-
-	if (WiFi.softAP(cfg.hostname)) {
-		DBG(print(F("Connect to SSID: ")));
-		DBG(print(cfg.hostname));
-		DBG(println(F(" to configure WIFI")));
-		dnsServer.start(53, "*", WiFi.softAPIP());
 	} else
-		ERR(println(F("Error starting softAP")));
+		captive_portal();
 
 	server.on("/config", HTTP_POST, []() {
 		if (server.hasArg("plain")) {
@@ -223,9 +245,9 @@ void setup() {
 	wire.begin(SDA, SCL);
 	ina219.begin(&wire);
 
-	timers.setInterval(UPDATE_RSSI, draw_rssi);
 	timers.setInterval(UPDATE_VI, draw_vi);
 	timers.setInterval(SAMPLE_VI, sample_vi);
+	connectTimer = timers.setInterval(UPDATE_CONNECT, connecting);
 }
 
 void loop() {

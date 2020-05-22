@@ -19,8 +19,8 @@ function load_config() {
   });
 }
 function save_config() {
-  form = document.getElementById('config');
-  data = [].reduce.call(form.elements, (data, element) => {
+  config = document.getElementById('config');
+  data = [].reduce.call(config.elements, (data, element) => {
     if (element.id && element.value) {
       if (element.type == 'checkbox') {
         data[element.id] = (element.checked? 1: 0);
@@ -30,6 +30,9 @@ function save_config() {
     }
     return data;
   }, {});
+  data['presets'] = Array.from(document.getElementsByClassName("preset")).map((element) => {
+	  return { preset: element.value };
+  })
   xhr = new XMLHttpRequest();
   xhr.open("POST", '/config', true);
   xhr.setRequestHeader('Content-Type', 'application/json');
@@ -50,7 +53,7 @@ function save_config() {
   </tr>
   <tr>
     <td>Password:</td>
-    <td><input type="text" id="password"></td>
+    <td><input type="password" id="password"></td>
     <td><img src="info.png" title="Your Wifi network password"/></td>
   </tr>
   <tr>
@@ -63,7 +66,7 @@ function save_config() {
     <td>
       <table id="presets">
         <tr>
-          <td><input type="text" class="preset"></td>
+          <td><input type="number" step="0.1" class="preset"></td>
         </tr>
       </table>
     </td>
